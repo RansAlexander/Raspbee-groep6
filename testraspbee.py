@@ -1,18 +1,18 @@
-
 import RPi.GPIO as GPIO
 import cgitb;
-
-
 import spidev
 import time
 import json
+import random
 cgitb.enable()
 import requests
-
+from random import random
+from flask import Flask,render_template,url_for,request,redirect, make_response
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(17, GPIO.OUT)
 
+app = Flask(__name__)
 
 spi = spidev.SpiDev()
 spi.open(0, 0)
@@ -42,6 +42,19 @@ print("Aan het berekenen...")
 warmte = readpot(0)
 oogst = readpot(1)
 
+@app.route('/', methods=["GET", "POST"])
+def main():
+    return render_template('index.html')
+@app.route('/data', methods=["GET", "POST"])
+def data():
+    Temperature = readpot(0)
+    data = [time.time() * 1000, Temperature]
+    response = make_response(json.dumps(data))
+    response.content_type = 'application/json'
+    return response
+
+if __name__ == '__main__':
+    app.run(debug=True, host='192.168.0.163')
 
 try:
     while True:
