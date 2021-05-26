@@ -74,7 +74,11 @@ def data():
 
 def thread_webapp():
     if __name__ == '__main__':
+<<<<<<< HEAD
+        app.run(debug=False, host='192.168.0.249')
+=======
         app.run(debug=False, host='192.168.137.2')
+>>>>>>> 86ada27f284ba3a1d3b0e83b09b99bf6220f3a73
 
 
 def thread_main():
