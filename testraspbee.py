@@ -55,6 +55,13 @@ def main():
         GPIO.output(2, GPIO.LOW)
     return render_template('index.html')
 
+def blink(pin):
+	#setup GPIO output channel
+	GPIO.setup(pin, GPIO.OUT)
+	GPIO.output(pin, 1)
+	time.sleep(1)
+	GPIO.output(pin, 0)
+	time.sleep(0.5)
 
 @app.route('/data', methods=["GET", "POST"])
 def data():
@@ -67,7 +74,11 @@ def data():
 
 def thread_webapp():
     if __name__ == '__main__':
+<<<<<<< HEAD
         app.run(debug=False, host='192.168.0.249')
+=======
+        app.run(debug=False, host='192.168.137.2')
+>>>>>>> 86ada27f284ba3a1d3b0e83b09b99bf6220f3a73
 
 
 def thread_main():
@@ -80,6 +91,7 @@ def thread_main():
                 print("WARNING - ", "Temperatuur is Te warm!", warmte, "Graden")
                 warm_sended = True
                 blink(17)
+                blink(18)
                 time.sleep(2)
 
             if 200 < warmte < 750 != True:
@@ -88,6 +100,7 @@ def thread_main():
 
             if warmte < 200 != True:
                 print("Warning - ", "Temperatuur is Te koud!", warmte, "Graden")
+                blink(17)
                 time.sleep(2)
 
             if oogst > 500 != True:
