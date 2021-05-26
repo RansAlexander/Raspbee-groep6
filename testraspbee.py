@@ -9,6 +9,7 @@ import requests
 from random import random
 from flask import Flask,render_template,url_for,request,redirect, make_response
 
+
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(17, GPIO.OUT)
 
