@@ -52,6 +52,7 @@
                 <div id="data-weight"></div>
             </div>
         </div>
+        <button type="button" class="btn btn-dark" id="btnToggle">Turn On</button>
     </div>
 </body>
 <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
@@ -125,6 +126,27 @@
     }
 
     $(document).ready(function(){
+        $('#btnToggle').on('click', function(e){
+        let status;
+        if($(this).text() == 'Turn On') {
+            $(this).text('Turn Off')
+            $(this).removeClass().addClass('btn btn-light');
+            status = 'on';
+        } else {
+            $(this).text('Turn On');
+            $(this).removeClass().addClass('btn btn-dark');
+            status = 'off';
+        }
+        
+        $.ajax({
+            url: '?status=' + status,
+            method: 'GET',
+            success: function(result) {
+                console.log(result);
+         }
+        });
+        e.preventDefault();
+    });
         // Chart 1
         chartTemperatue = new Highcharts.Chart({
                 chart:
@@ -193,6 +215,7 @@
                     data: []
             }]
         });
+        
     });
 </script>
 </html>
