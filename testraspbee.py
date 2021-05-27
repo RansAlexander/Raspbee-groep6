@@ -14,7 +14,6 @@ import json
 import random
 
 cgitb.enable()
-GPIO.cleanup()
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
 pins = [17, 18, 2]
@@ -53,7 +52,10 @@ def sos(pin): #sos signaal als temp te warm is
         time.sleep(0.5)
 
 print("Aan het berekenen...")
-warmte = readpot(0)
+warmte = round(((readpot(0)/1024)*100-50), 2)
+warmte = round(warmte)
+
+
 oogst = readpot(1)
 
 @app.route('/', methods=["GET", "POST"])
@@ -72,7 +74,7 @@ def main():
 
 @app.route('/data', methods=["GET", "POST"])
 def data():
-    temperature = readpot(0)
+    temperature = round(((readpot(0)/1024)*100-50), 2)
     weight = readpot(1)
     data = [time.time() * 1000, temperature, weight, Light]
     response = make_response(json.dumps(data))
@@ -82,27 +84,29 @@ def data():
 
 def thread_webapp():
     if __name__ == '__main__':
-        app.run(debug=False, host='192.168.0.163')
+        app.run(debug=False, host='192.168.0.249')
 
 
 def thread_main():
     try:
         while True:       
-            warmte = readpot(0)
+            warmte = round(((readpot(0)/1024)*100-50), 2)
+
+
             oogst = readpot(1)
 
-            if warmte > 750 != True:
-                print("WARNING - ", "Temperatuur is Te warm!", warmte, "Graden")
+            if warmte > 30 != True:
+                print("WARNING - ", "Temperatuur is te hoog!", warmte, "°C")
                 sos(17)
                 sos(18)
                 time.sleep(2)
                 push = dev.push_note("Opgelet!","De temperatuur is te hoog!")
-            if 200 < warmte < 750 != True:
-                print("Temperatuur is Goed", warmte, "Graden")
+            if 0 < warmte < 30  != True:
+                print("Temperatuur is Goed", warmte, "°C")
                 time.sleep(2)
 
-            if warmte < 200 != True:
-                print("Warning - ", "Temperatuur is Te koud!", warmte, "Graden")
+            if warmte < 0 != True:
+                print("Warning - ", "Temperatuur is Te koud!", warmte, "°C")
                 push = dev.push_note("Opgelet!","De temperatuur is te laag!")
                 blink(17)
                 time.sleep(2)
