@@ -9,13 +9,14 @@ import time
 import json
 import random
 cgitb.enable()
+url = "http://orientationproject2.hub.ubeac.io/Raspbee"
+uid = "raspbee"
 
+GPIO.setwarnings(False)
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(17, GPIO.OUT)
 GPIO.setup(2, GPIO.OUT)
-Light = GPIO.input(2)
-print(Light)
 
 app = Flask(__name__)
 
@@ -31,7 +32,6 @@ def readpot(potmeter):
     time.sleep(0.000005)
     potout = ((r[1] & 3) << 8) + r[2]
     return potout
-
 
 def blink(pin):
     # setup GPIO output channel
@@ -53,10 +53,8 @@ def main():
     status = request.args.get('status')
     if status == "on":
         GPIO.output(2, GPIO.HIGH)
-        Light = True
     elif status == "off":
         GPIO.output(2, GPIO.LOW)
-        Light = False
     return render_template('index.html')
 
 def blink(pin):
@@ -71,7 +69,7 @@ def blink(pin):
 def data():
     temperature = readpot(0)
     weight = readpot(1)
-    data = [time.time() * 1000, temperature, weight, Light]
+    data = [time.time() * 1000, temperature, weight]
     response = make_response(json.dumps(data))
     response.content_type = 'application/json'
     return response
@@ -123,7 +121,26 @@ def thread_main():
         client_sock.close()
         server_sock.close()
 
+
+def thread_ubeac():
+    # Compiling and sending data
+    while True:
+        data= {
+            "id": uid,
+            "sensors": [{
+                "id": "vol",
+                "data": readpot(0)
+            }]
+        }
+        
+        requests.post(url, verify=False, json=data)
+        print("sending data:", readpot(0))
+        time.sleep(1)
+
+
 t1 = threading.Thread(target=thread_main)
 t2 = threading.Thread(target=thread_webapp)
+t3 = threading.Thread(target=thread_ubeac)
 t1.start()
 t2.start()
+t3.start()

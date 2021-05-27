@@ -58,7 +58,7 @@
                 <div id="data-weight"></div>
             </div>
         </div>
-        <button type="button" class="btn btn-dark" id="btnToggle">Turn On</button>
+        <button type="button" class="" id="btnToggle"></button>
     </div>
 </body>
 <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
@@ -75,7 +75,6 @@
 
 <script>
     var chartTemperatue;
-
     function requestData(){
         var requests = $.get('/data');
         var tm = requests.done(function (result){
@@ -132,18 +131,32 @@
     }
 
     $(document).ready(function(){
+        requests = $.get('/data', function(data) {
+            var light = data[3]
+            if(light == true) {
+                $('#btnToggle').text('Turn off');
+                $('#btnToggle').removeClass().addClass('btn btn-light');
+                status = 'on';
+            }
+            else {
+                $('#btnToggle').text('Turn on');
+                $('#btnToggle').removeClass().addClass('btn btn-dark');
+                status = 'on';
+            }
+        });
         $('#btnToggle').on('click', function(e){
         let status;
         if($(this).text() == 'Turn On') {
-            $(this).text('Turn Off')
+            $(this).text('Turn Off');
             $(this).removeClass().addClass('btn btn-light');
             status = 'on';
-        } else {
+        } 
+        else {
             $(this).text('Turn On');
             $(this).removeClass().addClass('btn btn-dark');
             status = 'off';
-        }
-        
+        }   
+
         $.ajax({
             url: '?status=' + status,
             method: 'GET',
