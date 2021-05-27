@@ -1,5 +1,6 @@
 from flask import Flask, render_template, url_for, request, redirect, make_response
 from random import random
+import os
 import threading
 import requests
 import RPi.GPIO as GPIO
@@ -11,8 +12,8 @@ import pushbullet
 from pushbullet import Pushbullet
 import json
 import random
-cgitb.enable()
 
+cgitb.enable()
 GPIO.cleanup()
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
@@ -64,6 +65,9 @@ def main():
     elif status == "off":
         GPIO.output(2, GPIO.LOW)
         Light = False
+    sound = request.args.get('sound')
+    if sound == "on":
+        os.system('mpg321 sound.mp3 &')
     return render_template('index.html')
 
 @app.route('/data', methods=["GET", "POST"])
@@ -78,7 +82,7 @@ def data():
 
 def thread_webapp():
     if __name__ == '__main__':
-        app.run(debug=False, host='192.168.0.249')
+        app.run(debug=False, host='192.168.0.163')
 
 
 def thread_main():
