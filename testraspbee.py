@@ -13,6 +13,11 @@ from pushbullet import Pushbullet
 import json
 import random
 
+url = "http://orientationproject2.hub.ubeac.io/Raspbee"
+uid = "raspbee"
+cgitb.enable()
+
+GPIO.setwarnings(False)
 cgitb.enable()
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
@@ -26,9 +31,9 @@ spi = spidev.SpiDev()
 spi.open(0, 0)
 spi.max_speed_hz = 1000000
 
-pb = Pushbullet("o.M6kXL9OO7Rk85XGt9aNPBB30vfpzpwut")
+pb = Pushbullet("o.3ACNnvFshIEf0BVAIXpR3hX1BX6jJH4z")
 print(pb.devices)
-dev = pb.get_device('Xiaomi Redmi Note 7')
+dev = pb.get_device('OnePlus 3T')
 
 def readpot(potmeter):
     if ((potmeter > 7) or (potmeter < 0)):
@@ -84,22 +89,21 @@ def data():
 
 def thread_webapp():
     if __name__ == '__main__':
-        app.run(debug=False, host='192.168.0.249')
+        app.run(debug=False, host='192.168.137.2')
 
 
 def thread_main():
     try:
         while True:       
             warmte = round(((readpot(0)/1024)*100-50), 2)
-
-
             oogst = round(((readpot(1)/1024)*50), 2)
-
+            
             if warmte > 30 != True:
                 print("WARNING - ", "Temperatuur is te hoog!", warmte, "°C")
                 sos(17)
                 sos(18)
                 time.sleep(2)
+
                 push = dev.push_note("Opgelet!","De temperatuur is te hoog!")
             if 0 < warmte < 30  != True:
                 print("Temperatuur is Goed", warmte, "°C")
@@ -122,7 +126,6 @@ def thread_main():
                 print("WARNING ", " Korf is Leeg")
                 push = dev.push_note("Opgelet!","De korf is leeg! Vul honingraten aan.")
                 time.sleep(2)
-
             if GPIO.input(17):
                 time.sleep(1)
             elif GPIO.input(17) == False:
@@ -130,8 +133,39 @@ def thread_main():
 
     except KeyboardInterrupt:
         GPIO.cleanup()
+        
+def thread_ubeac():
+    while True:
+        data1= {
+            "id": "raspbee",
+            "sensors": [{
+                "id": "adc kanaal0",
+                "data": readpot(0)
+            }]
+        }
+        requests.post(url, verify=False, json=data1)
+        print("sending data 1:", readpot(0))
+        time.sleep(1)
+        
+        data2= {
+            "id": "raspbee",
+            "sensors": [{
+                "id": "adc kanaal1",
+                "data": readpot(1)
+            }]
+        }
+    
+        
+        requests.post(url, verify=False, json=data2)
+        print("sending data 2:", readpot(1))
+        time.sleep(1)
+
+        
+
 
 t1 = threading.Thread(target=thread_main)
 t2 = threading.Thread(target=thread_webapp)
+t3 = threading.Thread(target=thread_ubeac)
 t1.start()
 t2.start()
+t3.start()
