@@ -75,7 +75,7 @@ def main():
 @app.route('/data', methods=["GET", "POST"])
 def data():
     temperature = round(((readpot(0)/1024)*100-50), 2)
-    weight = readpot(1)
+    weight = round(((readpot(1)/1024)*50), 2)
     data = [time.time() * 1000, temperature, weight, Light]
     response = make_response(json.dumps(data))
     response.content_type = 'application/json'
@@ -93,7 +93,7 @@ def thread_main():
             warmte = round(((readpot(0)/1024)*100-50), 2)
 
 
-            oogst = readpot(1)
+            oogst = round(((readpot(1)/1024)*50), 2)
 
             if warmte > 30 != True:
                 print("WARNING - ", "Temperatuur is te hoog!", warmte, "°C")
@@ -111,16 +111,16 @@ def thread_main():
                 blink(17)
                 time.sleep(2)
 
-            if oogst > 500 != True:
+            if oogst > 18 != True:
                 print("Warning - ", "Korf is Vol!")
                 push = dev.push_note("Opgelet!","De korf is vol!")
                 time.sleep(2)
-            if 200 < oogst < 500 != True:
+            if 2 < oogst < 18 != True:
                 print("Korf is Goed")
 
-            if oogst < 200 != True:
+            if oogst < 2 != True:
                 print("WARNING ", " Korf is Leeg")
-                push = dev.push_note("Opgelet!","De korf is leeg!")
+                push = dev.push_note("Opgelet!","De korf is leeg! Vul honingraten aan.")
                 time.sleep(2)
 
             if GPIO.input(17):
