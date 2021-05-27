@@ -13,21 +13,15 @@ import json
 import random
 cgitb.enable()
 
-
-GPIO.setwarnings(False)
-
 GPIO.cleanup()
 GPIO.setwarnings(False)
-
-
 GPIO.setmode(GPIO.BCM)
-GPIO.setup(17, GPIO.OUT)
-GPIO.setup(2, GPIO.OUT)
+pins = [17, 18, 2]
+for i in pins:
+    GPIO.setup(i, GPIO.OUT)
 Light = GPIO.input(2)
-print(Light)
 
 app = Flask(__name__)
-
 spi = spidev.SpiDev()
 spi.open(0, 0)
 spi.max_speed_hz = 1000000
@@ -35,9 +29,6 @@ spi.max_speed_hz = 1000000
 pb = Pushbullet("o.M6kXL9OO7Rk85XGt9aNPBB30vfpzpwut")
 print(pb.devices)
 dev = pb.get_device('Xiaomi Redmi Note 7')
-
-
-
 
 def readpot(potmeter):
     if ((potmeter > 7) or (potmeter < 0)):
@@ -48,32 +39,21 @@ def readpot(potmeter):
     return potout
 
 def blink(pin): #licht signaal als temp koud is
-	GPIO.setup(pin, GPIO.OUT)
 	GPIO.output(pin, 1)
 	time.sleep(0.2)
 	GPIO.output(pin, 0)
 	time.sleep(0.2)
 	
 def sos(pin): #sos signaal als temp te warm is
-	GPIO.setup(pin, GPIO.OUT)
-	GPIO.output(pin, 1)
-	time.sleep(0.5)
-	GPIO.output(pin, 0)
-	time.sleep(0.5)
-	GPIO.output(pin, 1)
-	time.sleep(1.5)
-	GPIO.output(pin, 0)
-	time.sleep(0.5)
-	GPIO.output(pin, 1)
-	time.sleep(0.5)
-	GPIO.output(pin, 0)
-	time.sleep(1.0)
+    for i in range(3):
+        GPIO.output(pin, 1)
+        time.sleep(0.5)
+        GPIO.output(pin, 0)
+        time.sleep(0.5)
 
 print("Aan het berekenen...")
-
 warmte = readpot(0)
 oogst = readpot(1)
-
 
 @app.route('/', methods=["GET", "POST"])
 def main():
@@ -86,8 +66,6 @@ def main():
         Light = False
     return render_template('index.html')
 
-
-
 @app.route('/data', methods=["GET", "POST"])
 def data():
     temperature = readpot(0)
@@ -96,6 +74,7 @@ def data():
     response = make_response(json.dumps(data))
     response.content_type = 'application/json'
     return response
+
 
 def thread_webapp():
     if __name__ == '__main__':
@@ -140,8 +119,6 @@ def thread_main():
                 time.sleep(1)
             elif GPIO.input(17) == False:
                 time.sleep(1)
-
-
 
     except KeyboardInterrupt:
         GPIO.cleanup()
