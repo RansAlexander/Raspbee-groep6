@@ -6,12 +6,19 @@ import RPi.GPIO as GPIO
 import cgitb
 import spidev
 import time
+from time import sleep
+import pushbullet
+from pushbullet import Pushbullet
 import json
 import random
 cgitb.enable()
 
+
+GPIO.setwarnings(False)
+
 GPIO.cleanup()
 GPIO.setwarnings(False)
+
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(17, GPIO.OUT)
@@ -22,6 +29,12 @@ app = Flask(__name__)
 spi = spidev.SpiDev()
 spi.open(0, 0)
 spi.max_speed_hz = 1000000
+
+pb = Pushbullet("o.M6kXL9OO7Rk85XGt9aNPBB30vfpzpwut")
+print(pb.devices)
+dev = pb.get_device('Xiaomi Redmi Note 7')
+
+
 
 
 def readpot(potmeter):
@@ -82,7 +95,7 @@ def data():
 
 def thread_webapp():
     if __name__ == '__main__':
-        app.run(debug=False, host='192.168.137.2')
+        app.run(debug=False, host='192.168.0.249')
 
 
 def thread_main():
@@ -96,30 +109,35 @@ def thread_main():
                 sos(17)
                 sos(18)
                 time.sleep(2)
-
+                push = dev.push_note("Opgelet!","De temperatuur is te hoog!")
             if 200 < warmte < 750 != True:
                 print("Temperatuur is Goed", warmte, "Graden")
                 time.sleep(2)
 
             if warmte < 200 != True:
                 print("Warning - ", "Temperatuur is Te koud!", warmte, "Graden")
+                push = dev.push_note("Opgelet!","De temperatuur is te laag!")
                 blink(17)
                 time.sleep(2)
 
             if oogst > 500 != True:
                 print("Warning - ", "Korf is Vol!")
+                push = dev.push_note("Opgelet!","De korf is vol!")
                 time.sleep(2)
             if 200 < oogst < 500 != True:
                 print("Korf is Goed")
 
             if oogst < 200 != True:
                 print("WARNING ", " Korf is Leeg")
+                push = dev.push_note("Opgelet!","De korf is leeg!")
                 time.sleep(2)
 
             if GPIO.input(17):
                 time.sleep(1)
             elif GPIO.input(17) == False:
                 time.sleep(1)
+
+
 
     except KeyboardInterrupt:
         GPIO.cleanup()
