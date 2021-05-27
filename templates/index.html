@@ -17,6 +17,10 @@
     .data-text {
         font-size: 3rem;
     }
+    button {
+        margin: 10px;
+        width: 200px;
+    }
     @media (max-width: 990px) {
         .data-box {
             border-radius: 5px;
@@ -32,6 +36,8 @@
 </head>
 <body>
     <div class="container-fluid">
+            <button type="button" class="" id="btnLight"></button>
+            <button type="button" class="btn btn-primary" id="btnSound">Play Sound</button>
         <div class="row">
             <div class="col col-lg-6 data-box sensor1-box d-none d-lg-block">
                 <p class="sensor1 data-text">Sensor: </p>
@@ -58,7 +64,6 @@
                 <div id="data-weight"></div>
             </div>
         </div>
-        <button type="button" class="btn btn-dark" id="btnToggle">Turn On</button>
     </div>
 </body>
 
@@ -77,7 +82,6 @@
 
 <script>
     var chartTemperatue;
-
     function requestData(){
         var requests = $.get('/data');
         var tm = requests.done(function (result){
@@ -99,32 +103,32 @@
             chartTemperatue.series[0].addPoint(data1, true, shiftTemperature);
             chartWeight.series[0].addPoint(data2, true, shiftWeight);
             // $(".sensor1").text("");
-            $(".sensor1").text("Temperature: " +  data1[1]);
+            $(".sensor1").text("Temperature: " +  data1[1] + "°C");
             // $(".sensor2").text("");
-            $(".sensor2").text("Weight: " +  data2[1]);
+            $(".sensor2").text("Weight: " +  data2[1] + " kg");
 
-            if(data1[1] < 200){
+            if(data1[1] < 0){
                 $(".sensor1-box").css("background-color", "#ffc8c8");
                 $(".sensor1-warning-text").removeClass(".hide").text("Temperatuur te laag!");
             }
-            else if(data1[1] > 200 && data1[1] < 750){
+            else if(data1[1] > 0 && data1[1] < 30){
                 $(".sensor1-box").css("background-color", "#c8ffc8");
                 $(".sensor1-warning-text").addClass(".hide").text("");
             }
-            else if(data1[1] > 750 ){
+            else if(data1[1] > 30 ){
                 $(".sensor1-box").css("background-color", "#ffc8c8");
                 $(".sensor1-warning-text").removeClass(".hide").text("Temperatuur te hoog!");
             }
 
-            if(data2[1] < 200){
+            if(data2[1] < 2){
                 $(".sensor2-box").css("background-color", "#ffc8c8");
                 $(".sensor2-warning-text").removeClass(".hide").text("Korf is leeg!");
             }
-            else if(data2[1] > 200 && data2[1] < 500){
+            else if(data2[1] > 2 && data2[1] < 18){
                 $(".sensor2-box").css("background-color", "#c8ffc8");
                 $(".sensor2-warning-text").addClass(".hide").text("");
             }
-            else if(data2[1] > 500 ){
+            else if(data2[1] > 18 ){
                 $(".sensor2-box").css("background-color", "#ffc8c8");
                 $(".sensor2-warning-text").removeClass(".hide").text("Korf is vol!");
             }
@@ -134,27 +138,51 @@
     }
 
     $(document).ready(function(){
-        $('#btnToggle').on('click', function(e){
-        let status;
-        if($(this).text() == 'Turn On') {
-            $(this).text('Turn Off')
-            $(this).removeClass().addClass('btn btn-light');
-            status = 'on';
-        } else {
-            $(this).text('Turn On');
-            $(this).removeClass().addClass('btn btn-dark');
-            status = 'off';
-        }
-        
-        $.ajax({
-            url: '?status=' + status,
-            method: 'GET',
-            success: function(result) {
-                console.log(result);
-         }
+        requests = $.get('/data', function(data) {
+            var light = data[3]
+            if(light == true) {
+                $('#btnLight').text('Turn off');
+                $('#btnLight').removeClass().addClass('btn btn-light');
+                status = 'on';
+            }
+            else {
+                $('#btnLight').text('Turn on');
+                $('#btnLight').removeClass().addClass('btn btn-dark');
+                status = 'on';
+            }
         });
-        e.preventDefault();
-    });
+        $('#btnLight').on('click', function(e){
+            let status;
+            if($(this).text() == 'Turn On') {
+                $(this).text('Turn Off');
+                $(this).removeClass().addClass('btn btn-light');
+                status = 'on';
+            } 
+            else {
+                $(this).text('Turn On');
+                $(this).removeClass().addClass('btn btn-dark');
+                status = 'off';
+            }   
+
+            $.ajax({
+                url: '?status=' + status,
+                method: 'GET',
+                success: function(result) {
+                    console.log(result);
+                }
+            });
+        });
+        $('#btnSound').on('click', function(f){
+            sound = 'on'
+            $.ajax({
+                url: '?sound=' + sound,
+                method: 'GET',
+                success: function(result) {
+                    console.log(result);
+                }
+            });
+        });
+        // e.preventDefault();
         // Chart 1
         chartTemperatue = new Highcharts.Chart({
                 chart:
