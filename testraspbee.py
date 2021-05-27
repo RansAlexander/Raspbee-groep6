@@ -13,7 +13,13 @@ import json
 import random
 cgitb.enable()
 
+
 GPIO.setwarnings(False)
+
+GPIO.cleanup()
+GPIO.setwarnings(False)
+
+
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(17, GPIO.OUT)
 GPIO.setup(2, GPIO.OUT)
@@ -39,15 +45,27 @@ def readpot(potmeter):
     potout = ((r[1] & 3) << 8) + r[2]
     return potout
 
-
-def blink(pin):
-    # setup GPIO output channel
-    GPIO.setup(pin, GPIO.OUT)
-    GPIO.output(pin, 1)
-    time.sleep(0.5)
-    GPIO.output(pin, 0)
-    time.sleep(0.5)
-
+def blink(pin): #licht signaal als temp koud is
+	GPIO.setup(pin, GPIO.OUT)
+	GPIO.output(pin, 1)
+	time.sleep(0.2)
+	GPIO.output(pin, 0)
+	time.sleep(0.2)
+	
+def sos(pin): #sos signaal als temp te warm is
+	GPIO.setup(pin, GPIO.OUT)
+	GPIO.output(pin, 1)
+	time.sleep(0.5)
+	GPIO.output(pin, 0)
+	time.sleep(0.5)
+	GPIO.output(pin, 1)
+	time.sleep(1.5)
+	GPIO.output(pin, 0)
+	time.sleep(0.5)
+	GPIO.output(pin, 1)
+	time.sleep(0.5)
+	GPIO.output(pin, 0)
+	time.sleep(1.0)
 
 print("Aan het berekenen...")
 
@@ -64,13 +82,7 @@ def main():
         GPIO.output(2, GPIO.LOW)
     return render_template('index.html')
 
-def blink(pin):
-	#setup GPIO output channel
-	GPIO.setup(pin, GPIO.OUT)
-	GPIO.output(pin, 1)
-	time.sleep(1)
-	GPIO.output(pin, 0)
-	time.sleep(0.5)
+
 
 @app.route('/data', methods=["GET", "POST"])
 def data():
@@ -94,9 +106,8 @@ def thread_main():
 
             if warmte > 750 != True:
                 print("WARNING - ", "Temperatuur is Te warm!", warmte, "Graden")
-                warm_sended = True
-                blink(17)
-                blink(18)
+                sos(17)
+                sos(18)
                 time.sleep(2)
                 push = dev.push_note("Opgelet!","De temperatuur is te hoog!")
             if 200 < warmte < 750 != True:
@@ -130,8 +141,6 @@ def thread_main():
 
     except KeyboardInterrupt:
         GPIO.cleanup()
-        client_sock.close()
-        server_sock.close()
 
 t1 = threading.Thread(target=thread_main)
 t2 = threading.Thread(target=thread_webapp)
