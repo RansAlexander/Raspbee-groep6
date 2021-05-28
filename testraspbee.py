@@ -31,9 +31,9 @@ spi = spidev.SpiDev()
 spi.open(0, 0)
 spi.max_speed_hz = 1000000
 
-pb = Pushbullet("o.v5I0hO0Z21DXDiYjQ7ylDsb8r3fXKUfc")
+pb = Pushbullet("o.J7nrpntZ0hOkP5Ej4RYT8p4oi3GXalTL")
 print(pb.devices)
-dev = pb.get_device('OnePlus 7 Pro')
+dev = pb.get_device('Galaxy S8')
 
 def readpot(potmeter):
     if ((potmeter > 7) or (potmeter < 0)):
@@ -86,7 +86,7 @@ def data():
 
 def thread_webapp():
     if __name__ == '__main__':
-        app.run(debug=False, host='192.168.0.163')
+        app.run(debug=False, host='192.168.137.2')
 
 
 def thread_main():
@@ -118,6 +118,7 @@ def thread_main():
 
             if oogst > 18 != True:
                 print("Warning - ", "Korf is Vol!")
+                sos(18)
                 if alertOogst == False:
                     push = dev.push_note("Opgelet!","De korf is vol!")
                     alertOogst = True
