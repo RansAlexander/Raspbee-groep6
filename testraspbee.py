@@ -31,9 +31,9 @@ spi = spidev.SpiDev()
 spi.open(0, 0)
 spi.max_speed_hz = 1000000
 
-pb = Pushbullet("o.3ACNnvFshIEf0BVAIXpR3hX1BX6jJH4z")
+pb = Pushbullet("o.v5I0hO0Z21DXDiYjQ7ylDsb8r3fXKUfc")
 print(pb.devices)
-dev = pb.get_device('OnePlus 3T')
+dev = pb.get_device('OnePlus 7 Pro')
 
 def readpot(potmeter):
     if ((potmeter > 7) or (potmeter < 0)):
@@ -58,9 +58,6 @@ def sos(pin): #sos signaal als temp te warm is
 
 print("Aan het berekenen...")
 warmte = round(((readpot(0)/1024)*100-50), 2)
-warmte = round(warmte)
-
-
 oogst = readpot(1)
 
 @app.route('/', methods=["GET", "POST"])
@@ -89,11 +86,13 @@ def data():
 
 def thread_webapp():
     if __name__ == '__main__':
-        app.run(debug=False, host='192.168.137.2')
+        app.run(debug=False, host='192.168.0.163')
 
 
 def thread_main():
     try:
+        alertWarmte = False
+        alertOogst = False
         while True:       
             warmte = round(((readpot(0)/1024)*100-50), 2)
             oogst = round(((readpot(1)/1024)*50), 2)
@@ -102,34 +101,37 @@ def thread_main():
                 print("WARNING - ", "Temperatuur is te hoog!", warmte, "°C")
                 sos(17)
                 sos(18)
-                time.sleep(2)
+                if alertWarmte == False:
+                    push = dev.push_note("Opgelet!","De temperatuur is te hoog!")
+                    alertWarmte = True
 
-                push = dev.push_note("Opgelet!","De temperatuur is te hoog!")
-            if 0 < warmte < 30  != True:
+            elif 0 < warmte < 30  != True:
                 print("Temperatuur is Goed", warmte, "°C")
-                time.sleep(2)
+                alertWarmte = False
 
-            if warmte < 0 != True:
+            elif warmte < 0 != True:
                 print("Warning - ", "Temperatuur is Te koud!", warmte, "°C")
-                push = dev.push_note("Opgelet!","De temperatuur is te laag!")
                 blink(17)
-                time.sleep(2)
+                if alertWarmte == False:
+                    push = dev.push_note("Opgelet!","De temperatuur is te laag!")
+                    alertWarmte = True
 
             if oogst > 18 != True:
                 print("Warning - ", "Korf is Vol!")
-                push = dev.push_note("Opgelet!","De korf is vol!")
-                time.sleep(2)
-            if 2 < oogst < 18 != True:
-                print("Korf is Goed")
+                if alertOogst == False:
+                    push = dev.push_note("Opgelet!","De korf is vol!")
+                    alertOogst = True
 
-            if oogst < 2 != True:
+            elif 2 < oogst < 18 != True:
+                print("Korf is Goed")
+                alertOogst = False
+
+            elif oogst < 2 != True:
                 print("WARNING ", " Korf is Leeg")
-                push = dev.push_note("Opgelet!","De korf is leeg! Vul honingraten aan.")
-                time.sleep(2)
-            if GPIO.input(17):
-                time.sleep(1)
-            elif GPIO.input(17) == False:
-                time.sleep(1)
+                if alertOogst == False:
+                    push = dev.push_note("Opgelet!","De korf is leeg! Vul honingraten aan.")
+                    alertOogst = True
+            time.sleep(2)
 
     except KeyboardInterrupt:
         GPIO.cleanup()
@@ -140,29 +142,25 @@ def thread_ubeac():
             "id": "raspbee",
             "sensors": [{
                 "id": "adc kanaal0",
-                "data": readpot(0)
+                "data": round(((readpot(0)/1024)*100-50), 2)
             }]
         }
-        requests.post(url, verify=False, json=data1)
-        print("sending data 1:", readpot(0))
-        time.sleep(1)
-        
+
         data2= {
             "id": "raspbee",
             "sensors": [{
                 "id": "adc kanaal1",
-                "data": readpot(1)
+                "data": round(((readpot(1)/1024)*50), 2)
             }]
         }
-    
-        
-        requests.post(url, verify=False, json=data2)
-        print("sending data 2:", readpot(1))
+
+        requests.post(url, verify=False, json=data1)
+        print("sending data 1:", round(((readpot(0)/1024)*100-50), 2))
         time.sleep(1)
-
+        requests.post(url, verify=False, json=data2)
+        print("sending data 2:", round(((readpot(1)/1024)*50), 2))
+        time.sleep(1)
         
-
-
 t1 = threading.Thread(target=thread_main)
 t2 = threading.Thread(target=thread_webapp)
 t3 = threading.Thread(target=thread_ubeac)
